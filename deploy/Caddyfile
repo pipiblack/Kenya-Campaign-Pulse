@@ -1,0 +1,32 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$PULSE_DOMAIN} {
+	encode zstd gzip
+
+	@backend path /api/* /health/*
+	handle @backend {
+		reverse_proxy fastapi-backend:8000 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy nextjs-frontend:3000
+	}
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -1,0 +1,219 @@
+name: pulse-kenya-production
+
+x-json-logging: &json-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-backend-environment: &backend-environment
+  ENVIRONMENT: production
+  PULSE_DEBUG: "false"
+  ALLOW_DEMO_ACCESS: "false"
+  DATABASE_URL: postgresql+asyncpg://pulse_app:${PULSE_APP_PASSWORD:?Set PULSE_APP_PASSWORD}@postgres:5432/${POSTGRES_DB:-pulse_kenya}
+  REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD}@redis:6379/0
+  JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+  ACCESS_TOKEN_MINUTES: ${ACCESS_TOKEN_MINUTES:-120}
+  CORS_ORIGINS: '["${PULSE_PUBLIC_ORIGIN:?Set PULSE_PUBLIC_ORIGIN}"]'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pulse_kenya}
+      POSTGRES_USER: ${POSTGRES_USER:-pulse_owner}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      PULSE_APP_PASSWORD: ${PULSE_APP_PASSWORD:?Set PULSE_APP_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init-production.sh:/docker-entrypoint-initdb.d/001-init.sh:ro
+      - ./database/init_schema.sql:/opt/pulse/init_schema.sql:ro
+      - ./database/kenya_geography_seed.sql:/opt/pulse/kenya_geography_seed.sql:ro
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    logging: *json-logging
+
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$${REDIS_PASSWORD}\""]
+    volumes:
+      - redis_data:/data
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$${REDIS_PASSWORD} redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+    logging: *json-logging
+
+  bootstrap-admin:
+    build:
+      context: ./backend
+      target: runtime
+    command: python -m app.cli.bootstrap_admin
+    environment:
+      ENVIRONMENT: production
+      PULSE_DEBUG: "false"
+      ALLOW_DEMO_ACCESS: "false"
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-pulse_owner}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pulse_kenya}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      INITIAL_TENANT_NAME: ${INITIAL_TENANT_NAME:?Set INITIAL_TENANT_NAME}
+      INITIAL_TENANT_SLUG: ${INITIAL_TENANT_SLUG:?Set INITIAL_TENANT_SLUG}
+      INITIAL_ADMIN_NAME: ${INITIAL_ADMIN_NAME:?Set INITIAL_ADMIN_NAME}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:?Set INITIAL_ADMIN_EMAIL}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:?Set INITIAL_ADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - data
+    restart: "no"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *json-logging
+
+  fastapi-backend:
+    build:
+      context: ./backend
+      target: runtime
+    command:
+      - uvicorn
+      - main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - ${API_WORKERS:-2}
+      - --proxy-headers
+      - --forwarded-allow-ips=*
+    environment: *backend-environment
+    expose:
+      - "8000"
+    depends_on:
+      bootstrap-admin:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app
+      - data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready')"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *json-logging
+
+  nlp-worker:
+    build:
+      context: ./backend
+      target: runtime
+    command: python -m app.workers.nlp_worker
+    environment: *backend-environment
+    depends_on:
+      bootstrap-admin:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app
+      - data
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *json-logging
+
+  nextjs-frontend:
+    build:
+      context: ./frontend
+      target: runtime
+      args:
+        NEXT_PUBLIC_API_URL: /api/v1
+        NEXT_PUBLIC_DEFAULT_TENANT_SLUG: ${INITIAL_TENANT_SLUG:?Set INITIAL_TENANT_SLUG}
+    environment:
+      NEXT_PUBLIC_API_URL: /api/v1
+      NEXT_PUBLIC_DEFAULT_TENANT_SLUG: ${INITIAL_TENANT_SLUG:?Set INITIAL_TENANT_SLUG}
+    expose:
+      - "3000"
+    depends_on:
+      fastapi-backend:
+        condition: service_healthy
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://127.0.0.1:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *json-logging
+
+  caddy:
+    image: caddy:2-alpine
+    environment:
+      PULSE_DOMAIN: ${PULSE_DOMAIN:?Set PULSE_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    ports:
+      - "${PULSE_HTTP_BIND:-0.0.0.0:80}:80"
+      - "${PULSE_HTTPS_BIND:-0.0.0.0:443}:443"
+      - "${PULSE_HTTPS_BIND:-0.0.0.0:443}:443/udp"
+    volumes:
+      - ${PULSE_CADDYFILE:-./deploy/Caddyfile}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      fastapi-backend:
+        condition: service_healthy
+      nextjs-frontend:
+        condition: service_healthy
+    networks:
+      - app
+    restart: unless-stopped
+    logging: *json-logging
+
+networks:
+  app:
+  data:
+    internal: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:

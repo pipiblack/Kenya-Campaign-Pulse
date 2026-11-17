@@ -1,0 +1,165 @@
+{
+  "sourceFiles": [
+    "pulse-counties.geojson",
+    "pulse-wards-flow360.geojson",
+    "kenya-geography.csv"
+  ],
+  "counties": 47,
+  "wards": 1450,
+  "lowConfidenceMatches": [
+    {
+      "county": "MACHAKOS",
+      "shape": "Mananja Ward",
+      "ward": "NDITHINI",
+      "constituency": "MASINGA",
+      "score": 30
+    },
+    {
+      "county": "MACHAKOS",
+      "shape": "Mathatani Ward",
+      "ward": "MUTHWANI",
+      "constituency": "MAVOKO",
+      "score": 28
+    },
+    {
+      "county": "MACHAKOS",
+      "shape": "Township Ward",
+      "ward": "MACHAKOS CENTRAL",
+      "constituency": "MACHAKOS TOWN",
+      "score": 24
+    },
+    {
+      "county": "BUNGOMA",
+      "shape": "Kakateny Ward",
+      "ward": "KAPKATENY",
+      "constituency": "MT.ELGON",
+      "score": 56
+    },
+    {
+      "county": "KERICHO",
+      "shape": "BELGUT",
+      "ward": "KAPSUSER",
+      "constituency": "BELGUT",
+      "score": 0
+    },
+    {
+      "county": "TANA RIVER",
+      "shape": "Hirimani Ward",
+      "ward": "BURA",
+      "constituency": "BURA",
+      "score": 30
+    },
+    {
+      "county": "MANDERA",
+      "shape": "KILIWAHERI",
+      "ward": "KILIWEHIRI",
+      "constituency": "BANISSA",
+      "score": 68.9
+    },
+    {
+      "county": "THARAKA-NITHI",
+      "shape": "Chiakagira Ward",
+      "ward": "CHIAKARIGA",
+      "constituency": "THARAKA",
+      "score": 62.9
+    },
+    {
+      "county": "NYERI",
+      "shape": "RURING'U / Karia Ward",
+      "ward": "RURING'U",
+      "constituency": "NYERI TOWN",
+      "score": 59.9
+    },
+    {
+      "county": "WEST POKOT",
+      "shape": "Kapchok Ward",
+      "ward": "KAPCKOK",
+      "constituency": "KACHELIBA",
+      "score": 46.7
+    },
+    {
+      "county": "MAKUENI",
+      "shape": "Kalawa/ Kathulumbi Ward",
+      "ward": "KALAWA",
+      "constituency": "MBOONI",
+      "score": 65
+    },
+    {
+      "county": "KIRINYAGA",
+      "shape": "Njukiine Ward",
+      "ward": "NJUKIINI",
+      "constituency": "GICHUGU",
+      "score": 60
+    },
+    {
+      "county": "MURANG'A",
+      "shape": "Kamahuhu Ward",
+      "ward": "KAMAHUHA",
+      "constituency": "MARAGWA",
+      "score": 62.9
+    },
+    {
+      "county": "NAKURU",
+      "shape": "Maeilla Ward",
+      "ward": "MAIELLA",
+      "constituency": "NAIVASHA",
+      "score": 65
+    },
+    {
+      "county": "NAIROBI",
+      "shape": "Matopeni/spring Valley Ward",
+      "ward": "MATOPENI",
+      "constituency": "EMBAKASI CENTRAL",
+      "score": 67.7
+    },
+    {
+      "county": "NAROK",
+      "shape": "Iikerin Ward",
+      "ward": "ILKERIN",
+      "constituency": "EMURUA DIKIRR",
+      "score": 46.7
+    },
+    {
+      "county": "KWALE",
+      "shape": "Waa Ngombeni Ward",
+      "ward": "WAA",
+      "constituency": "MATUGA",
+      "score": 53.3
+    },
+    {
+      "county": "BARINGO",
+      "shape": "Iichamus Ward",
+      "ward": "ILCHAMUS",
+      "constituency": "BARINGO SOUTH",
+      "score": 55.9
+    },
+    {
+      "county": "LAIKIPIA",
+      "shape": "Githiga Ward",
+      "ward": "KINAMBA",
+      "constituency": "LAIKIPIA WEST",
+      "score": 30
+    },
+    {
+      "county": "KAJIADO",
+      "shape": "Entonet/lenkism Ward",
+      "ward": "ENTONET/LENKISIM",
+      "constituency": "KAJIADO SOUTH",
+      "score": 62.2
+    },
+    {
+      "county": "KAJIADO",
+      "shape": "Imbrikani/eselelnkei Ward",
+      "ward": "MBIRIKANI/ESELENKEI",
+      "constituency": "KAJIADO SOUTH",
+      "score": 56
+    },
+    {
+      "county": "NYAMIRA",
+      "shape": "Kamera Ward",
+      "ward": "KEMERA",
+      "constituency": "KITUTU MASABA",
+      "score": 45.3
+    }
+  ]
+}

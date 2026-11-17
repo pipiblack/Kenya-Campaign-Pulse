@@ -1,0 +1,138 @@
+@import "@fontsource-variable/source-sans-3";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: 7 16 14;
+  --panel: 11 23 20;
+  --elevated: 9 21 18;
+  --line: 35 57 51;
+  --signal: 133 249 194;
+  --on-signal: 7 16 14;
+  --wash: 255 255 255;
+  --amber: 255 191 105;
+  --danger: 255 93 93;
+  --slate-50: 238 248 244;
+  --slate-100: 226 238 233;
+  --slate-200: 204 220 214;
+  --slate-300: 174 197 189;
+  --slate-400: 136 161 154;
+  --slate-500: 99 126 118;
+  --slate-600: 70 94 87;
+  --grid: 133 249 194;
+  --shadow: 0 0 0;
+  --map-empty: 16 34 29;
+  --map-neutral: 48 72 63;
+  --map-positive: 22 96 71;
+  --map-negative: 115 66 57;
+  --map-threat: 142 76 47;
+  --map-critical: 183 53 53;
+  --map-stroke: 49 81 72;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --ink: 244 247 244;
+  --panel: 255 255 253;
+  --elevated: 251 253 250;
+  --line: 190 205 198;
+  --signal: 5 119 87;
+  --on-signal: 255 255 255;
+  --wash: 13 38 31;
+  --amber: 151 83 8;
+  --danger: 190 45 45;
+  --slate-50: 12 31 26;
+  --slate-100: 18 42 35;
+  --slate-200: 32 57 49;
+  --slate-300: 53 78 70;
+  --slate-400: 73 98 90;
+  --slate-500: 96 121 113;
+  --slate-600: 120 143 136;
+  --grid: 20 98 75;
+  --shadow: 37 62 54;
+  --map-empty: 226 234 230;
+  --map-neutral: 171 190 181;
+  --map-positive: 65 147 113;
+  --map-negative: 205 132 115;
+  --map-threat: 195 115 74;
+  --map-critical: 195 62 62;
+  --map-stroke: 142 169 158;
+}
+
+* { box-sizing: border-box; }
+
+html { background: rgb(var(--ink)); }
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: rgb(var(--slate-50));
+  background:
+    radial-gradient(circle at 12% 8%, rgb(var(--signal) / 0.11), transparent 28rem),
+    radial-gradient(circle at 88% 20%, rgb(var(--amber) / 0.065), transparent 25rem),
+    rgb(var(--ink));
+  font-family: "Source Sans 3 Variable", "Segoe UI", sans-serif;
+  transition: color 180ms ease, background-color 180ms ease;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  opacity: 0.25;
+  background-image: linear-gradient(rgb(var(--grid) / 0.035) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--grid) / 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+button, input, select { font: inherit; }
+
+button:focus-visible, a:focus-visible, select:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+::selection { background: rgb(var(--signal) / 0.24); }
+
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+.panel {
+  border: 1px solid rgb(var(--line) / 0.78);
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgb(var(--elevated) / 0.96), rgb(var(--panel) / 0.94));
+  box-shadow: inset 0 1px rgb(255 255 255 / 0.08), 0 18px 50px rgb(var(--shadow) / 0.16);
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.scanline { position: relative; overflow: hidden; }
+.scanline::after {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: repeating-linear-gradient(0deg, transparent 0, transparent 3px, rgb(var(--signal) / 0.012) 4px);
+}
+
+.status-dot { box-shadow: 0 0 0 4px rgb(var(--signal) / 0.08), 0 0 18px rgb(var(--signal) / 0.55); }
+
+.theme-to-dark { display: none; }
+:root[data-theme="light"] .theme-to-light { display: none; }
+:root[data-theme="light"] .theme-to-dark { display: block; }
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: .45; transform: scale(.9); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.pulse-ring { animation: pulse-ring 1.9s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
+
